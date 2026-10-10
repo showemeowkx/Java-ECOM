@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.math.BigDecimal;
 import java.util.stream.Collectors;
 
 @Service
@@ -70,7 +71,7 @@ public class ProductService {
 
     public ProductResp getProduct(String id) {
         Product p = mockProducts.stream()
-                .filter(prod -> prod.id.toString().equals(id))
+                .filter(prod -> prod.getId().toString().equals(id))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Product not found!")); 
         return ProductMapper.toDto(p);
@@ -78,16 +79,18 @@ public class ProductService {
 
     public ProductResp updateProduct(String id, ProductReq req) {
         Product p = mockProducts.stream()
-                .filter(prod -> prod.id.toString().equals(id))
+                .filter(prod -> prod.getId().toString().equals(id))
                 .findFirst()
                 .orElse(null); 
 
         if (p != null) {
-            p.name = req.name;
-            p.desc = req.description;
-            p.price = req.price;
+            p.setName(req.name);
+            p.setDescription(req.description);
+            if (req.price != null) {
+                p.setPrice(BigDecimal.valueOf(req.price));
+            }
             if(req.categoryId != null) {
-                p.categoryId = UUID.fromString(req.categoryId);
+                p.setCategoryId(UUID.fromString(req.categoryId));
             }
             saveToFile();
         }
@@ -95,7 +98,7 @@ public class ProductService {
     }
 
     public void deleteProduct(String id) {
-        mockProducts.removeIf(prod -> prod.id.toString().equals(id));
+        mockProducts.removeIf(prod -> prod.getId().toString().equals(id));
         saveToFile();
     }
 }
