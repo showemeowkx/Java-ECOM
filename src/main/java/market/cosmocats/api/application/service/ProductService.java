@@ -22,11 +22,13 @@ import java.util.stream.Collectors;
 public class ProductService {
 
     private final ObjectMapper objectMapper;
+    private final ProductMapper productMapper;
     private final File dbFile = new File("database.json");
     private List<Product> mockProducts = new ArrayList<>();
 
-    public ProductService(ObjectMapper objectMapper) {
+    public ProductService(ObjectMapper objectMapper, ProductMapper productMapper) {
         this.objectMapper = objectMapper;
+        this.productMapper = productMapper;
     }
 
     @PostConstruct
@@ -49,15 +51,16 @@ public class ProductService {
     }
 
     public ProductResp createProduct(ProductReq req) {
-        Product product = ProductMapper.toDomain(req);
+        Product product = productMapper.toDomain(req);
+        product.setId(UUID.randomUUID());
         mockProducts.add(product);
         saveToFile();
-        return ProductMapper.toDto(product);
+        return productMapper.toDto(product);
     }
 
     public PagedResponse getAllProducts(int page, int limit) {
         List<ProductResp> dtos = mockProducts.stream()
-                .map(ProductMapper::toDto)
+                .map(productMapper::toDto)
                 .collect(Collectors.toList());
 
         PagedResponse response = new PagedResponse();
@@ -74,7 +77,7 @@ public class ProductService {
                 .filter(prod -> prod.getId().toString().equals(id))
                 .findFirst()
                 .orElseThrow(() -> new RuntimeException("Product not found!")); 
-        return ProductMapper.toDto(p);
+        return productMapper.toDto(p);
     }
 
     public ProductResp updateProduct(String id, ProductReq req) {
@@ -94,7 +97,7 @@ public class ProductService {
             }
             saveToFile();
         }
-        return ProductMapper.toDto(p);
+        return productMapper.toDto(p);
     }
 
     public void deleteProduct(String id) {

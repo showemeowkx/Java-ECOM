@@ -3,14 +3,16 @@ package market.cosmocats.api.application.mapper;
 import market.cosmocats.api.domain.Product;
 import market.cosmocats.api.application.dto.ProductReq;
 import market.cosmocats.api.application.dto.ProductResp;
+import org.springframework.stereotype.Component;
+
 import java.util.UUID;
 import java.math.BigDecimal;
 
+@Component
 public class ProductMapper {
     
-    public static Product toDomain(ProductReq req) {
+    public Product toDomain(ProductReq req) {
         Product p = new Product();
-        p.setId(UUID.randomUUID());
         p.setName(req.name);
         p.setDescription(req.description);
         if (req.price != null) {
@@ -22,7 +24,7 @@ public class ProductMapper {
         return p;
     }
 
-    public static ProductResp toDto(Product product) {
+    public ProductResp toDto(Product product) {
         ProductResp resp = new ProductResp();
         if (product.getId() != null) resp.id = product.getId().toString();
         resp.name = product.getName();
