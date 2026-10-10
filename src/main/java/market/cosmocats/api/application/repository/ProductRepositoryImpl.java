@@ -15,19 +15,19 @@ import java.util.Optional;
 @Repository
 public class ProductRepositoryImpl implements ProductRepository {
 
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper();
     private final File dbFile = new File("database.json");
     private List<Product> mockProducts = new ArrayList<>();
 
-    public ProductRepositoryImpl(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    public ProductRepositoryImpl() {
     }
 
     @PostConstruct
     public void init() {
         if (dbFile.exists()) {
             try {
-                mockProducts = objectMapper.readValue(dbFile, new TypeReference<List<Product>>() {});
+                mockProducts = objectMapper.readValue(dbFile, new TypeReference<List<Product>>() {
+                });
             } catch (IOException e) {
                 e.printStackTrace();
             }
