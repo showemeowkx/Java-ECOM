@@ -3,30 +3,37 @@ package market.cosmocats.api.application.mapper;
 import market.cosmocats.api.domain.Product;
 import market.cosmocats.api.application.dto.ProductReq;
 import market.cosmocats.api.application.dto.ProductResp;
-import java.util.UUID;
+import org.springframework.stereotype.Component;
 
+import java.util.UUID;
+import java.math.BigDecimal;
+
+@Component
 public class ProductMapper {
     
-    public static Product toDomain(ProductReq req) {
+    public Product toDomain(ProductReq req) {
         Product p = new Product();
-        p.id = UUID.randomUUID();
-        p.name = req.name;
-        p.desc = req.description;
-        p.price = req.price;
+        p.setName(req.name);
+        p.setDescription(req.description);
+        if (req.price != null) {
+            p.setPrice(req.price);
+        }
         if (req.categoryId != null) {
-            p.categoryId = UUID.fromString(req.categoryId);
+            p.setCategoryId(UUID.fromString(req.categoryId));
         }
         return p;
     }
 
-    public static ProductResp toDto(Product product) {
+    public ProductResp toDto(Product product) {
         ProductResp resp = new ProductResp();
-        if (product.id != null) resp.id = product.id.toString();
-        resp.name = product.name;
-        resp.description = product.desc;
-        resp.price = product.price;
-        if (product.categoryId != null) {
-            resp.categoryId = product.categoryId.toString();
+        if (product.getId() != null) resp.id = product.getId().toString();
+        resp.name = product.getName();
+        resp.description = product.getDescription();
+        if (product.getPrice() != null) {
+            resp.price = product.getPrice();
+        }
+        if (product.getCategoryId() != null) {
+            resp.categoryId = product.getCategoryId().toString();
         }
         return resp;
     }

@@ -1,18 +1,15 @@
 package market.cosmocats.api.application.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import market.cosmocats.api.domain.Product;
 import market.cosmocats.api.application.dto.ProductReq;
 import market.cosmocats.api.application.dto.ProductResp;
 import market.cosmocats.api.application.dto.PagedResponse;
 import market.cosmocats.api.application.mapper.ProductMapper;
+import market.cosmocats.api.application.repository.ProductRepository;
+import market.cosmocats.api.application.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
-import jakarta.annotation.PostConstruct;
-import java.io.File;
-import java.io.IOException;
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -20,82 +17,61 @@ import java.util.stream.Collectors;
 @Service
 public class ProductService {
 
-    private final ObjectMapper objectMapper;
-    private final File dbFile = new File("database.json");
-    private List<Product> mockProducts = new ArrayList<>();
+    private final ProductRepository productRepository;
+    private final ProductMapper productMapper;
 
-    public ProductService(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
-
-    @PostConstruct
-    public void init() {
-        if (dbFile.exists()) {
-            try {
-                mockProducts = objectMapper.readValue(dbFile, new TypeReference<List<Product>>() {});
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void saveToFile() {
-        try {
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(dbFile, mockProducts);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public ProductService(ProductRepository productRepository, ProductMapper productMapper) {
+        this.productRepository = productRepository;
+        this.productMapper = productMapper;
     }
 
     public ProductResp createProduct(ProductReq req) {
-        Product product = ProductMapper.toDomain(req);
-        mockProducts.add(product);
-        saveToFile();
-        return ProductMapper.toDto(product);
+        Product product = productMapper.toDomain(req);
+        product.setId(UUID.randomUUID());
+        productRepository.save(product);
+        return productMapper.toDto(product);
     }
 
     public PagedResponse getAllProducts(int page, int limit) {
-        List<ProductResp> dtos = mockProducts.stream()
-                .map(ProductMapper::toDto)
+        List<Product> products = productRepository.findAll();
+        List<ProductResp> dtos = products.stream()
+                .map(productMapper::toDto)
                 .collect(Collectors.toList());
 
         PagedResponse response = new PagedResponse();
-        response.data = dtos; 
+        response.data = dtos;
         response.page = page;
         response.limit = limit;
-        response.totalElements = String.valueOf(mockProducts.size());
-        
+        response.totalElements = products.size();
+
         return response;
     }
 
     public ProductResp getProduct(String id) {
-        Product p = mockProducts.stream()
-                .filter(prod -> prod.id.toString().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new RuntimeException("Product not found!")); 
-        return ProductMapper.toDto(p);
+        Product p = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
+        return productMapper.toDto(p);
     }
 
     public ProductResp updateProduct(String id, ProductReq req) {
-        Product p = mockProducts.stream()
-                .filter(prod -> prod.id.toString().equals(id))
-                .findFirst()
-                .orElse(null); 
+        Product p = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
 
-        if (p != null) {
-            p.name = req.name;
-            p.desc = req.description;
-            p.price = req.price;
-            if(req.categoryId != null) {
-                p.categoryId = UUID.fromString(req.categoryId);
-            }
-            saveToFile();
+        p.setName(req.name);
+        p.setDescription(req.description);
+        if (req.price != null) {
+            p.setPrice(req.price);
         }
-        return ProductMapper.toDto(p);
+        if (req.categoryId != null) {
+            p.setCategoryId(UUID.fromString(req.categoryId));
+        }
+
+        productRepository.save(p);
+
+        return productMapper.toDto(p);
     }
 
     public void deleteProduct(String id) {
-        mockProducts.removeIf(prod -> prod.id.toString().equals(id));
-        saveToFile();
+        productRepository.deleteById(id);
     }
 }

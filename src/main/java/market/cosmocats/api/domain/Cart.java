@@ -4,6 +4,12 @@ import java.util.UUID;
 import java.util.List;
 
 public class Cart {
-    public UUID id;
-    public List<UUID> productIds;
+    private UUID id;
+    private List<UUID> productIds;
+
+    public UUID getId() { return id; }
+    public void setId(UUID id) { this.id = id; }
+
+    public List<UUID> getProductIds() { return productIds; }
+    public void setProductIds(List<UUID> productIds) { this.productIds = productIds; }
 }

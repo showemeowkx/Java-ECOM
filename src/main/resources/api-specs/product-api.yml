@@ -11,13 +11,13 @@ paths:
       summary: Get all products
       description: Returns a paginated list of products.
       parameters:
-        - name: page_number
+        - name: page
           in: query
-          description: Page number
+          description: Page number (0-based)
           required: false
           schema:
             type: integer
-            default: 1
+            default: 0
         - name: limit
           in: query
           description: Max items per page
@@ -41,7 +41,7 @@ paths:
             schema:
               $ref: '#/components/schemas/ProductCreateRequest'
       responses:
-        '200':
+        '201':
           description: Product created successfully
           content:
             application/json:
@@ -72,6 +72,10 @@ paths:
                 $ref: '#/components/schemas/ProductResponse'
         '404':
           description: Product not found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
     put:
       summary: Update a product
       parameters:
@@ -94,6 +98,14 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ProductResponse'
+        '400':
+          description: Validation error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Product not found
     delete:
       summary: Delete a product
       parameters:
@@ -104,13 +116,8 @@ paths:
             type: string
             format: uuid
       responses:
-        '200':
+        '204':
           description: Product deleted successfully
-          content:
-            application/json:
-              schema:
-                type: string
-                example: "Deleted"
 
 components:
   schemas:
@@ -126,7 +133,6 @@ components:
           type: string
         price:
           type: number
-          format: float
         categoryId:
           type: string
           format: uuid
@@ -135,34 +141,35 @@ components:
       required:
         - name
         - price
+        - categoryId
       properties:
         name:
           type: string
+          minLength: 3
+          maxLength: 100
         description:
           type: string
         price:
           type: number
-          format: float
+          minimum: 0.01
         categoryId:
           type: string
           format: uuid
     ProductUpdateRequest:
       type: object
       required:
-        - id
         - name
         - price
       properties:
-        id:
-          type: string
-          format: uuid
         name:
           type: string
+          minLength: 3
+          maxLength: 100
         description:
           type: string
         price:
           type: number
-          format: float
+          minimum: 0.01
         categoryId:
           type: string
           format: uuid
@@ -178,7 +185,7 @@ components:
         limit:
           type: integer
         totalElements:
-          type: string
+          type: integer
     ErrorResponse:
       type: object
       properties:
