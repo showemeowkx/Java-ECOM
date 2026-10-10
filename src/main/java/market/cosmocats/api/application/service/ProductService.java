@@ -7,6 +7,7 @@ import market.cosmocats.api.application.dto.ProductReq;
 import market.cosmocats.api.application.dto.ProductResp;
 import market.cosmocats.api.application.dto.PagedResponse;
 import market.cosmocats.api.application.mapper.ProductMapper;
+import market.cosmocats.api.application.exception.ResourceNotFoundException;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
@@ -76,7 +77,7 @@ public class ProductService {
         Product p = mockProducts.stream()
                 .filter(prod -> prod.getId().toString().equals(id))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Product not found!")); 
+                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found")); 
         return productMapper.toDto(p);
     }
 
@@ -84,19 +85,18 @@ public class ProductService {
         Product p = mockProducts.stream()
                 .filter(prod -> prod.getId().toString().equals(id))
                 .findFirst()
-                .orElse(null); 
+                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found")); 
 
-        if (p != null) {
-            p.setName(req.name);
-            p.setDescription(req.description);
-            if (req.price != null) {
-                p.setPrice(BigDecimal.valueOf(req.price));
-            }
-            if(req.categoryId != null) {
-                p.setCategoryId(UUID.fromString(req.categoryId));
-            }
-            saveToFile();
+        p.setName(req.name);
+        p.setDescription(req.description);
+        if (req.price != null) {
+            p.setPrice(BigDecimal.valueOf(req.price));
         }
+        if(req.categoryId != null) {
+            p.setCategoryId(UUID.fromString(req.categoryId));
+        }
+        saveToFile();
+        
         return productMapper.toDto(p);
     }
 
