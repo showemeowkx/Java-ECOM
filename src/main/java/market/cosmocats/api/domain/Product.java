@@ -1,11 +1,14 @@
 package market.cosmocats.api.domain;
 
+import lombok.Data;
+import java.math.BigDecimal;
 import java.util.UUID;
 
+@Data
 public class Product {
-    public UUID id;
-    public String name;
-    public String desc;
-    public Float price;
-    public UUID categoryId;
+    private UUID id;
+    private String name;
+    private String description;
+    private BigDecimal price;
+    private UUID categoryId;
 }

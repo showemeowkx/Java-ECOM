@@ -1,9 +1,11 @@
 package market.cosmocats.api.domain;
 
+import lombok.Data;
 import java.util.UUID;
 import java.util.List;
 
+@Data
 public class Cart {
-    public UUID id;
-    public List<UUID> productIds;
+    private UUID id;
+    private List<UUID> productIds;
 }
