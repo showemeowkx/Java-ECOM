@@ -16,7 +16,7 @@ public class ProductMapper {
         p.setName(req.name);
         p.setDescription(req.description);
         if (req.price != null) {
-            p.setPrice(BigDecimal.valueOf(req.price));
+            p.setPrice(req.price);
         }
         if (req.categoryId != null) {
             p.setCategoryId(UUID.fromString(req.categoryId));
@@ -30,7 +30,7 @@ public class ProductMapper {
         resp.name = product.getName();
         resp.description = product.getDescription();
         if (product.getPrice() != null) {
-            resp.price = product.getPrice().floatValue();
+            resp.price = product.getPrice();
         }
         if (product.getCategoryId() != null) {
             resp.categoryId = product.getCategoryId().toString();

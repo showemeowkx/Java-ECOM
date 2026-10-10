@@ -5,6 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import market.cosmocats.api.application.validation.CosmicWordCheck;
+import java.math.BigDecimal;
 
 public class ProductReq {
     
@@ -17,7 +18,7 @@ public class ProductReq {
     
     @NotNull(message = "Price is required")
     @DecimalMin(value = "0.01", message = "Price must be positive")
-    public Float price;
+    public BigDecimal price;
     
     @NotNull(message = "Category ID is required")
     public String categoryId;

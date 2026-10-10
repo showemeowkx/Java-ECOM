@@ -60,7 +60,7 @@ public class ProductService {
         p.setName(req.name);
         p.setDescription(req.description);
         if (req.price != null) {
-            p.setPrice(BigDecimal.valueOf(req.price));
+            p.setPrice(req.price);
         }
         if (req.categoryId != null) {
             p.setCategoryId(UUID.fromString(req.categoryId));
