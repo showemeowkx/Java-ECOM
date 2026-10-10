@@ -6,5 +6,5 @@ public class PagedResponse {
     public List<ProductResp> data;
     public int page;
     public int limit;
-    public String totalElements;
+    public int totalElements;
 }

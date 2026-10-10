@@ -18,7 +18,7 @@ paths:
           schema:
             type: integer
             default: 0
-        - name: size
+        - name: limit
           in: query
           description: Max items per page
           required: false
@@ -176,13 +176,13 @@ components:
     PagedProductResponse:
       type: object
       properties:
-        content:
+        data:
           type: array
           items:
             $ref: '#/components/schemas/ProductResponse'
         page:
           type: integer
-        size:
+        limit:
           type: integer
         totalElements:
           type: integer

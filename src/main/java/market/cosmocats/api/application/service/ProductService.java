@@ -39,35 +39,35 @@ public class ProductService {
                 .collect(Collectors.toList());
 
         PagedResponse response = new PagedResponse();
-        response.data = dtos; 
+        response.data = dtos;
         response.page = page;
         response.limit = limit;
-        response.totalElements = String.valueOf(products.size());
-        
+        response.totalElements = products.size();
+
         return response;
     }
 
     public ProductResp getProduct(String id) {
         Product p = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found")); 
+                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
         return productMapper.toDto(p);
     }
 
     public ProductResp updateProduct(String id, ProductReq req) {
         Product p = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found")); 
+                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
 
         p.setName(req.name);
         p.setDescription(req.description);
         if (req.price != null) {
             p.setPrice(BigDecimal.valueOf(req.price));
         }
-        if(req.categoryId != null) {
+        if (req.categoryId != null) {
             p.setCategoryId(UUID.fromString(req.categoryId));
         }
-        
+
         productRepository.save(p);
-        
+
         return productMapper.toDto(p);
     }
 

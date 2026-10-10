@@ -21,9 +21,9 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<PagedResponse> getProducts(
-            @RequestParam(defaultValue = "1") int page_number,
+            @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int limit) {
-        return ResponseEntity.ok(productService.getAllProducts(page_number, limit));
+        return ResponseEntity.ok(productService.getAllProducts(page, limit));
     }
 
     @PostMapping
