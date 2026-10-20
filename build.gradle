@@ -18,7 +18,7 @@ ext {
     // Minimal Coverage
     minimumCoveragePerFile = 0.9
     filesExcludedFromCoverage = [
-            "**/*MarketApplication.*",
+            "**/*CosmoCatsApplication.*",
             "**/config/*Configuration.*"
     ]
 }

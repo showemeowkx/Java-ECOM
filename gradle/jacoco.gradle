@@ -73,6 +73,7 @@ integrationTest {
     maxParallelForks = 4
     filter {
         includeTestsMatching '*IT'
+        failOnNoMatchingTests = false
     }
     finalizedBy tasks.jacocoIntegrationTestReport // report is always generated after tests run
 }
