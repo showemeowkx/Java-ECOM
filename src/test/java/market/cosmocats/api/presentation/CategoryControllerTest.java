@@ -3,6 +3,7 @@ package market.cosmocats.api.presentation;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import market.cosmocats.api.application.dto.CategoryReq;
 import market.cosmocats.api.application.dto.CategoryResp;
+import market.cosmocats.api.application.dto.ProductSummaryResp;
 import market.cosmocats.api.application.exception.ConflictException;
 import market.cosmocats.api.application.exception.ResourceNotFoundException;
 import market.cosmocats.api.application.service.CategoryService;
@@ -17,6 +18,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -77,6 +79,32 @@ class CategoryControllerTest {
         mockMvc.perform(get(CATEGORIES_URL + "/99"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.detail").value("Category with id 99 not found"));
+    }
+
+    @Test
+    void getCategoryProducts_shouldReturn200WithSummaries() throws Exception {
+        ProductSummaryResp summary = new ProductSummaryResp();
+        summary.id = 1L;
+        summary.name = "Star Toy";
+        summary.price = new BigDecimal("5.00");
+        when(categoryService.getCategoryProducts(CATEGORY_ID)).thenReturn(List.of(summary));
+
+        mockMvc.perform(get(CATEGORIES_URL + "/" + CATEGORY_ID + "/products"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].id").value(1))
+                .andExpect(jsonPath("$[0].name").value("Star Toy"))
+                .andExpect(jsonPath("$[0].price").value(5.00))
+                .andExpect(jsonPath("$[0].description").doesNotExist());
+    }
+
+    @Test
+    void getCategoryProducts_shouldReturn404WhenCategoryMissing() throws Exception {
+        when(categoryService.getCategoryProducts(99L))
+                .thenThrow(new ResourceNotFoundException("Category with id 99 not found"));
+
+        mockMvc.perform(get(CATEGORIES_URL + "/99/products"))
+                .andExpect(status().isNotFound());
     }
 
     @Test

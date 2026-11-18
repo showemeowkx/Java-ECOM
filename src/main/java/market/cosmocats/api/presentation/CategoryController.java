@@ -3,6 +3,7 @@ package market.cosmocats.api.presentation;
 import jakarta.validation.Valid;
 import market.cosmocats.api.application.dto.CategoryReq;
 import market.cosmocats.api.application.dto.CategoryResp;
+import market.cosmocats.api.application.dto.ProductSummaryResp;
 import market.cosmocats.api.application.service.CategoryService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,11 @@ public class CategoryController {
     @GetMapping("/{id}")
     public ResponseEntity<CategoryResp> getCategoryById(@PathVariable Long id) {
         return ResponseEntity.ok(categoryService.getCategory(id));
+    }
+
+    @GetMapping("/{id}/products")
+    public ResponseEntity<List<ProductSummaryResp>> getCategoryProducts(@PathVariable Long id) {
+        return ResponseEntity.ok(categoryService.getCategoryProducts(id));
     }
 
     @PutMapping("/{id}")

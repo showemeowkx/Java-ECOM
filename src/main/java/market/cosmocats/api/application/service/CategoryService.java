@@ -2,6 +2,8 @@ package market.cosmocats.api.application.service;
 
 import market.cosmocats.api.application.dto.CategoryReq;
 import market.cosmocats.api.application.dto.CategoryResp;
+import market.cosmocats.api.application.dto.ProductSummaryResp;
+import market.cosmocats.api.application.repository.projection.ProductSummary;
 import market.cosmocats.api.application.exception.ConflictException;
 import market.cosmocats.api.application.exception.ResourceNotFoundException;
 import market.cosmocats.api.application.mapper.CategoryMapper;
@@ -46,6 +48,13 @@ public class CategoryService {
         return categoryMapper.toDto(findCategory(id));
     }
 
+    public List<ProductSummaryResp> getCategoryProducts(Long id) {
+        findCategory(id);
+        return productRepository.findByCategoryIdOrderByPriceAscNameAsc(id).stream()
+                .map(CategoryService::toDto)
+                .toList();
+    }
+
     @Transactional
     public CategoryResp updateCategory(Long id, CategoryReq req) {
         Category category = findCategory(id);
@@ -61,6 +70,14 @@ public class CategoryService {
         }
         categoryRepository.delete(category);
         categoryRepository.flush();
+    }
+
+    private static ProductSummaryResp toDto(ProductSummary summary) {
+        ProductSummaryResp resp = new ProductSummaryResp();
+        resp.id = summary.getId();
+        resp.name = summary.getName();
+        resp.price = summary.getPrice();
+        return resp;
     }
 
     private Category findCategory(Long id) {

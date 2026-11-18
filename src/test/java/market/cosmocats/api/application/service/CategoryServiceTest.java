@@ -18,9 +18,14 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
+import market.cosmocats.api.application.dto.ProductSummaryResp;
+import market.cosmocats.api.application.repository.projection.ProductSummary;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.projection.SpelAwareProxyProjectionFactory;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -113,6 +118,38 @@ class CategoryServiceTest {
             assertThatThrownBy(() -> categoryService.getCategory(99L))
                     .isInstanceOf(ResourceNotFoundException.class)
                     .hasMessage("Category with id 99 not found");
+        }
+    }
+
+    @Nested
+    @DisplayName("getCategoryProducts")
+    class GetCategoryProducts {
+
+        @Test
+        void shouldReturnProductSummariesFromProjection() {
+            when(categoryRepository.findById(CATEGORY_ID)).thenReturn(Optional.of(existing));
+            when(productRepository.findByCategoryIdOrderByPriceAscNameAsc(CATEGORY_ID))
+                    .thenReturn(List.of(summary(2L, "Star Toy", "5.00"), summary(1L, "Cosmic Milk", "45.50")));
+
+            List<ProductSummaryResp> result = categoryService.getCategoryProducts(CATEGORY_ID);
+
+            assertThat(result).extracting(r -> r.id).containsExactly(2L, 1L);
+            assertThat(result.get(0).name).isEqualTo("Star Toy");
+            assertThat(result.get(0).price).isEqualByComparingTo("5.00");
+        }
+
+        @Test
+        void shouldThrowAndNotQueryProductsWhenCategoryMissing() {
+            when(categoryRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> categoryService.getCategoryProducts(99L))
+                    .isInstanceOf(ResourceNotFoundException.class);
+            verify(productRepository, never()).findByCategoryIdOrderByPriceAscNameAsc(any());
+        }
+
+        private static ProductSummary summary(Long id, String name, String price) {
+            return new SpelAwareProxyProjectionFactory().createProjection(ProductSummary.class,
+                    Map.of("id", id, "name", name, "price", new BigDecimal(price)));
         }
     }
 
