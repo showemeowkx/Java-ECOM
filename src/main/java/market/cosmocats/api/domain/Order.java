@@ -19,6 +19,7 @@ import org.hibernate.annotations.NaturalId;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -55,7 +56,7 @@ public class Order {
             orderNumber = UUID.randomUUID();
         }
         if (createdAt == null) {
-            createdAt = Instant.now();
+            createdAt = Instant.now().truncatedTo(ChronoUnit.MICROS);
         }
         if (status == null) {
             status = OrderStatus.NEW;
