@@ -15,6 +15,9 @@ java {
 }
 
 ext {
+    // 1.21.4+ talks to Docker Engine 29+, which rejects the API version older releases request
+    set('testcontainers.version', '1.21.4')
+
     // Minimal Coverage
     minimumCoveragePerFile = 0.9
     filesExcludedFromCoverage = [
@@ -55,6 +58,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-testcontainers'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:postgresql'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.34'
     testAnnotationProcessor 'org.mapstruct:mapstruct-processor:1.6.2'
