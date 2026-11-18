@@ -1,5 +1,6 @@
 package market.cosmocats.api.presentation.exception;
 
+import market.cosmocats.api.application.exception.ConflictException;
 import market.cosmocats.api.application.exception.ResourceNotFoundException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -48,6 +49,15 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Malformed or invalid request parameters");
         problemDetail.setType(URI.create("https://cosmo-cats.market/errors/bad-request"));
         problemDetail.setTitle("Bad request");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        return problemDetail;
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ProblemDetail handleConflict(ConflictException ex, HttpServletRequest request) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problemDetail.setType(URI.create("https://cosmo-cats.market/errors/conflict"));
+        problemDetail.setTitle("Conflict");
         problemDetail.setInstance(URI.create(request.getRequestURI()));
         return problemDetail;
     }
