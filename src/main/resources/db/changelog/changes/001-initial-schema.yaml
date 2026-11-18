@@ -1,0 +1,182 @@
+databaseChangeLog:
+  - changeSet:
+      id: 001-create-sequences
+      author: showemeowkx
+      changes:
+        - createSequence:
+            sequenceName: category_seq
+            dataType: bigint
+            startValue: 1
+            incrementBy: 50
+        - createSequence:
+            sequenceName: product_seq
+            dataType: bigint
+            startValue: 1
+            incrementBy: 50
+        - createSequence:
+            sequenceName: orders_seq
+            dataType: bigint
+            startValue: 1
+            incrementBy: 50
+        - createSequence:
+            sequenceName: order_item_seq
+            dataType: bigint
+            startValue: 1
+            incrementBy: 50
+
+  - changeSet:
+      id: 001-create-category
+      author: showemeowkx
+      changes:
+        - createTable:
+            tableName: category
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_category
+              - column:
+                  name: title
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-product
+      author: showemeowkx
+      changes:
+        - createTable:
+            tableName: product
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_product
+              - column:
+                  name: name
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: description
+                  type: text
+              - column:
+                  name: price
+                  type: numeric(12, 2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: category_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_product_category
+                    references: category(id)
+        - createIndex:
+            tableName: product
+            indexName: idx_product_category_id
+            columns:
+              - column:
+                  name: category_id
+
+  - changeSet:
+      id: 001-create-orders
+      author: showemeowkx
+      changes:
+        - createTable:
+            tableName: orders
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_orders
+              - column:
+                  name: order_number
+                  type: uuid
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uq_orders_order_number
+              - column:
+                  name: status
+                  type: varchar(20)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 001-create-order-item
+      author: showemeowkx
+      changes:
+        - createTable:
+            tableName: order_item
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: pk_order_item
+              - column:
+                  name: order_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_order_item_order
+                    references: orders(id)
+                    deleteCascade: true
+              - column:
+                  name: product_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_order_item_product
+                    references: product(id)
+              - column:
+                  name: quantity
+                  type: int
+                  constraints:
+                    nullable: false
+              - column:
+                  name: unit_price
+                  type: numeric(12, 2)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: order_item
+            indexName: idx_order_item_order_id
+            columns:
+              - column:
+                  name: order_id
+        - createIndex:
+            tableName: order_item
+            indexName: idx_order_item_product_id
+            columns:
+              - column:
+                  name: product_id
+
+  - changeSet:
+      id: 001-add-check-constraints
+      author: showemeowkx
+      changes:
+        - sql:
+            sql: >
+              ALTER TABLE product ADD CONSTRAINT chk_product_price_positive CHECK (price > 0);
+              ALTER TABLE order_item ADD CONSTRAINT chk_order_item_quantity_positive CHECK (quantity > 0);
+              ALTER TABLE order_item ADD CONSTRAINT chk_order_item_unit_price_positive CHECK (unit_price > 0);
+      rollback:
+        - sql:
+            sql: >
+              ALTER TABLE order_item DROP CONSTRAINT chk_order_item_unit_price_positive;
+              ALTER TABLE order_item DROP CONSTRAINT chk_order_item_quantity_positive;
+              ALTER TABLE product DROP CONSTRAINT chk_product_price_positive;
