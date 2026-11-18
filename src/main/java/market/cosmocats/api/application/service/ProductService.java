@@ -1,77 +1,77 @@
 package market.cosmocats.api.application.service;
 
-import market.cosmocats.api.domain.Product;
+import market.cosmocats.api.application.dto.PagedResponse;
 import market.cosmocats.api.application.dto.ProductReq;
 import market.cosmocats.api.application.dto.ProductResp;
-import market.cosmocats.api.application.dto.PagedResponse;
-import market.cosmocats.api.application.mapper.ProductMapper;
-import market.cosmocats.api.application.repository.ProductRepository;
 import market.cosmocats.api.application.exception.ResourceNotFoundException;
+import market.cosmocats.api.application.mapper.ProductMapper;
+import market.cosmocats.api.application.repository.CategoryRepository;
+import market.cosmocats.api.application.repository.ProductRepository;
+import market.cosmocats.api.domain.Category;
+import market.cosmocats.api.domain.Product;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(readOnly = true)
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final CategoryRepository categoryRepository;
     private final ProductMapper productMapper;
 
-    public ProductService(ProductRepository productRepository, ProductMapper productMapper) {
+    public ProductService(ProductRepository productRepository,
+                          CategoryRepository categoryRepository,
+                          ProductMapper productMapper) {
         this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
         this.productMapper = productMapper;
     }
 
+    @Transactional
     public ProductResp createProduct(ProductReq req) {
-        Product product = productMapper.toDomain(req);
-        product.setId(UUID.randomUUID());
-        productRepository.save(product);
-        return productMapper.toDto(product);
+        Product product = productMapper.toEntity(req, findCategory(req.categoryId));
+        return productMapper.toDto(productRepository.saveAndFlush(product));
     }
 
     public PagedResponse getAllProducts(int page, int limit) {
-        List<Product> products = productRepository.findAll();
-        List<ProductResp> dtos = products.stream()
-                .map(productMapper::toDto)
-                .collect(Collectors.toList());
+        Page<Product> result = productRepository.findAll(PageRequest.of(page, limit, Sort.by("id")));
 
         PagedResponse response = new PagedResponse();
-        response.data = dtos;
+        response.data = result.map(productMapper::toDto).getContent();
         response.page = page;
         response.limit = limit;
-        response.totalElements = products.size();
-
+        response.totalElements = result.getTotalElements();
         return response;
     }
 
-    public ProductResp getProduct(String id) {
-        Product p = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
-        return productMapper.toDto(p);
+    public ProductResp getProduct(Long id) {
+        return productMapper.toDto(findProduct(id));
     }
 
-    public ProductResp updateProduct(String id, ProductReq req) {
-        Product p = productRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
-
-        p.setName(req.name);
-        p.setDescription(req.description);
-        if (req.price != null) {
-            p.setPrice(req.price);
-        }
-        if (req.categoryId != null) {
-            p.setCategoryId(UUID.fromString(req.categoryId));
-        }
-
-        productRepository.save(p);
-
-        return productMapper.toDto(p);
+    @Transactional
+    public ProductResp updateProduct(Long id, ProductReq req) {
+        Product product = findProduct(id);
+        productMapper.apply(product, req, findCategory(req.categoryId));
+        return productMapper.toDto(productRepository.saveAndFlush(product));
     }
 
-    public void deleteProduct(String id) {
-        productRepository.deleteById(id);
+    @Transactional
+    public void deleteProduct(Long id) {
+        productRepository.delete(findProduct(id));
+        productRepository.flush();
+    }
+
+    private Product findProduct(Long id) {
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Product with id " + id + " not found"));
+    }
+
+    private Category findCategory(Long id) {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category with id " + id + " not found"));
     }
 }

@@ -1,7 +1,13 @@
 package market.cosmocats.api.presentation.exception;
 
+import market.cosmocats.api.application.exception.BadRequestException;
+import market.cosmocats.api.application.exception.ConflictException;
 import market.cosmocats.api.application.exception.ResourceNotFoundException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.http.ProblemDetail;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -31,6 +37,47 @@ public class GlobalExceptionHandler {
         ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, details);
         problemDetail.setType(URI.create("https://cosmo-cats.market/errors/validation"));
         problemDetail.setTitle("Validation failed");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        return problemDetail;
+    }
+
+    @ExceptionHandler({
+            MethodArgumentTypeMismatchException.class,
+            HandlerMethodValidationException.class,
+            HttpMessageNotReadableException.class
+    })
+    public ProblemDetail handleBadRequest(Exception ex, HttpServletRequest request) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Malformed or invalid request parameters");
+        problemDetail.setType(URI.create("https://cosmo-cats.market/errors/bad-request"));
+        problemDetail.setTitle("Bad request");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        return problemDetail;
+    }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ProblemDetail handleBadRequestException(BadRequestException ex, HttpServletRequest request) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+        problemDetail.setType(URI.create("https://cosmo-cats.market/errors/bad-request"));
+        problemDetail.setTitle("Bad request");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        return problemDetail;
+    }
+
+    @ExceptionHandler(ConflictException.class)
+    public ProblemDetail handleConflict(ConflictException ex, HttpServletRequest request) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT, ex.getMessage());
+        problemDetail.setType(URI.create("https://cosmo-cats.market/errors/conflict"));
+        problemDetail.setTitle("Conflict");
+        problemDetail.setInstance(URI.create(request.getRequestURI()));
+        return problemDetail;
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ProblemDetail handleDataIntegrityViolation(DataIntegrityViolationException ex, HttpServletRequest request) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+                "The request conflicts with existing data (duplicate value or resource still in use)");
+        problemDetail.setType(URI.create("https://cosmo-cats.market/errors/conflict"));
+        problemDetail.setTitle("Conflict");
         problemDetail.setInstance(URI.create(request.getRequestURI()));
         return problemDetail;
     }

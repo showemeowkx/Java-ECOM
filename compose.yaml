@@ -1,0 +1,9 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: cosmocats
+      POSTGRES_USER: cosmocats
+      POSTGRES_PASSWORD: cosmocats
+    ports:
+      - "5432:5432"

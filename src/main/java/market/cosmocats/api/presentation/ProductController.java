@@ -1,6 +1,8 @@
 package market.cosmocats.api.presentation;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import market.cosmocats.api.application.dto.PagedResponse;
 import market.cosmocats.api.application.dto.ProductReq;
 import market.cosmocats.api.application.dto.ProductResp;
@@ -22,8 +24,8 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<PagedResponse> getProducts(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int limit) {
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int limit) {
         return ResponseEntity.ok(productService.getAllProducts(page, limit));
     }
 
@@ -33,17 +35,17 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResp> getProductById(@PathVariable String id) {
+    public ResponseEntity<ProductResp> getProductById(@PathVariable Long id) {
         return ResponseEntity.ok(productService.getProduct(id));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductResp> updateProduct(@PathVariable String id, @Valid @RequestBody ProductReq req) {
+    public ResponseEntity<ProductResp> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductReq req) {
         return ResponseEntity.ok(productService.updateProduct(id, req));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable String id) {
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }

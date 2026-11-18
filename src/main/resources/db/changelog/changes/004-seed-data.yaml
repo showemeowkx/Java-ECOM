@@ -1,0 +1,65 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-seed-categories
+      author: showemeowkx
+      context: dev
+      changes:
+        - insert:
+            tableName: category
+            columns:
+              - column:
+                  name: id
+                  valueSequenceNext: category_seq
+              - column:
+                  name: title
+                  value: Космічні товари для котів
+      rollback:
+        - delete:
+            tableName: category
+            where: title = 'Космічні товари для котів'
+
+  - changeSet:
+      id: 004-seed-products
+      author: showemeowkx
+      context: dev
+      changes:
+        - insert:
+            tableName: product
+            columns:
+              - column:
+                  name: id
+                  valueSequenceNext: product_seq
+              - column:
+                  name: name
+                  value: Антигравітаційні клубки ниток
+              - column:
+                  name: description
+                  value: Дозволяють коту літати під час гри
+              - column:
+                  name: price
+                  valueNumeric: 99.99
+              - column:
+                  name: category_id
+                  valueComputed: (SELECT id FROM category WHERE title = 'Космічні товари для котів')
+        - insert:
+            tableName: product
+            columns:
+              - column:
+                  name: id
+                  valueSequenceNext: product_seq
+              - column:
+                  name: name
+                  value: Космічне молоко
+              - column:
+                  name: description
+                  value: Зібране з Чумацького Шляху
+              - column:
+                  name: price
+                  valueNumeric: 45.50
+              - column:
+                  name: category_id
+                  valueComputed: (SELECT id FROM category WHERE title = 'Космічні товари для котів')
+      rollback:
+        - delete:
+            tableName: product
+            where: name IN ('Антигравітаційні клубки ниток', 'Космічне молоко')

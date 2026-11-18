@@ -9,6 +9,8 @@ import market.cosmocats.api.application.service.ProductService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.CsvSource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -19,7 +21,6 @@ import org.springframework.test.web.servlet.ResultActions;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
 
@@ -42,8 +43,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class ProductControllerTest {
 
     private static final String PRODUCTS_URL = "/api/products";
-    private static final String PRODUCT_ID = UUID.randomUUID().toString();
-    private static final String CATEGORY_ID = UUID.randomUUID().toString();
+    private static final Long PRODUCT_ID = 1L;
+    private static final Long CATEGORY_ID = 10L;
 
     @Autowired
     private MockMvc mockMvc;
@@ -239,6 +240,52 @@ class ProductControllerTest {
         mockMvc.perform(delete(PRODUCTS_URL + "/" + PRODUCT_ID))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.title").value("Resource not found"));
+    }
+
+    @Test
+    void createProduct_shouldReturn409WhenDataIntegrityViolated() throws Exception {
+        when(productService.createProduct(any(ProductReq.class)))
+                .thenThrow(new DataIntegrityViolationException("uq_product_category_name"));
+
+        mockMvc.perform(post(PRODUCTS_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(validReq())))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.status").value(409))
+                .andExpect(jsonPath("$.title").value("Conflict"))
+                .andExpect(jsonPath("$.type").value("https://cosmo-cats.market/errors/conflict"))
+                .andExpect(jsonPath("$.instance").value(PRODUCTS_URL));
+    }
+
+    @Test
+    void getProductById_shouldReturn400ForNonNumericId() throws Exception {
+        mockMvc.perform(get(PRODUCTS_URL + "/not-a-number"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad request"))
+                .andExpect(jsonPath("$.type").value("https://cosmo-cats.market/errors/bad-request"));
+
+        verifyNoInteractions(productService);
+    }
+
+    @ParameterizedTest(name = "page={0}, limit={1}")
+    @CsvSource({"-1, 10", "0, 0", "0, 101"})
+    void getProducts_shouldReturn400ForInvalidPagination(String page, String limit) throws Exception {
+        mockMvc.perform(get(PRODUCTS_URL).param("page", page).param("limit", limit))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad request"));
+
+        verifyNoInteractions(productService);
+    }
+
+    @Test
+    void createProduct_shouldReturn400ForMalformedJson() throws Exception {
+        mockMvc.perform(post(PRODUCTS_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Star Food\",\"price\":1,\"categoryId\":\"abc\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.title").value("Bad request"));
+
+        verifyNoInteractions(productService);
     }
 
     @Test
