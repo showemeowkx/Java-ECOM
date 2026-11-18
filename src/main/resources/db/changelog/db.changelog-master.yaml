@@ -5,3 +5,6 @@ databaseChangeLog:
   - include:
       file: changes/002-product-name-unique-per-category.yaml
       relativeToChangelogFile: true
+  - include:
+      file: changes/003-search-indexes.yaml
+      relativeToChangelogFile: true
